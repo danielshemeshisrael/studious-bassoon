@@ -1,37 +1,40 @@
-name: Continuous Deployment
+name: Install Requirements, Run Uvicorn, and Connect to Localtunnel.me
 
 on:
   push:
     branches:
       - main
+  pull_request:
+    branches:
+      - main
 
 jobs:
-  deploy:
+  build:
+
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
+    - name: Checkout repository
       uses: actions/checkout@v2
       
     - name: Set up Python
       uses: actions/setup-python@v2
       with:
         python-version: '3.x'
-
+      
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
-
-    - name: Start uvicorn server
+      
+    - name: Start Uvicorn server
       run: |
         uvicorn main:app --port 8000 &
-        sleep 10 # wait for uvicorn to start
-
-    - name: Connect to localhost.run
+        
+    - name: Connect to Localtunnel.me
       run: |
-        ssh -R 80:localhost:8000 ssh.localhost.run &
-        sleep 10 # wait for connection to establish
-
+        npm install -g localtunnel
+        lt --port 8000 &
+        
     - name: Sleep for 1 hour
       run: sleep 3600
