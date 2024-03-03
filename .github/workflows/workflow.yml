@@ -1,4 +1,4 @@
-name: Expose Port 8000
+name: Deploy FastAPI Server
 
 on:
   push:
@@ -6,28 +6,38 @@ on:
       - main
 
 jobs:
-  expose_port:
+  deploy:
     runs-on: ubuntu-latest
+    
     steps:
-      - name: Check out repository
-        uses: actions/checkout@v2
-
-      - name: Print Public IP
-        run: |
-          curl ifconfig.me
-
-      - name: Install Python
-        uses: actions/setup-python@v2
-        with:
-          python-version: '3.x'
-
-      - name: Install requirements
-        run: |
-          pip install -r requirements.txt
-
-      - name: Run uvicorn
-        run: |
-          uvicorn main:app --host 0.0.0.0 --port 8000 &
-          sleep 10 # Sleep for 10 seconds to allow uvicorn to start
-          ngrok http 8000 -log=stdout > ngrok.log & # Expose port 8000 using ngrok
-          sleep 3600 # Sleep for 1 hour
+    - name: Checkout Repository
+      uses: actions/checkout@v2
+      
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.x'
+        
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        
+    - name: Install noip
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y noip2
+        
+    - name: Configure noip
+      run: |
+        sudo noip2 -C
+        
+    - name: Connect to No-IP Server
+      run: |
+        # Replace 'your_username', 'your_password', and 'your_hostname' with actual values
+        noip -u ew944qz -p ETKP38xvFzEL -h all.ddnskey.com
+        
+    - name: Run FastAPI Server
+      run: |
+        uvicorn main:app --host 0.0.0.0 --port 80 &
+        sleep 3600 # Sleep for 1 hour
