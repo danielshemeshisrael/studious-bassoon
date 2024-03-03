@@ -22,6 +22,11 @@ jobs:
       run: |
         pip install -r requirements.txt
 
+    - name: Fetch public IP
+      run: |
+        PUBLIC_IP=$(curl ifconfig.me)
+        echo "Public IP: $PUBLIC_IP"
+
     - name: Expose to LocalTunnel
       run: |
         npm install -g localtunnel
