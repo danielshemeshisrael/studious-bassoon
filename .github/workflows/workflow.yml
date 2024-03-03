@@ -1,4 +1,4 @@
-name: Run and Expose Application
+name: Continuous Deployment
 
 on:
   push:
@@ -6,7 +6,7 @@ on:
       - main
 
 jobs:
-  build:
+  deploy:
     runs-on: ubuntu-latest
 
     steps:
@@ -16,23 +16,22 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v2
       with:
-        python-version: '3.x' # choose the Python version you need
+        python-version: '3.x'
 
     - name: Install dependencies
       run: |
+        python -m pip install --upgrade pip
         pip install -r requirements.txt
 
-    - name: Fetch public IP
+    - name: Start uvicorn server
       run: |
-        PUBLIC_IP=$(curl ifconfig.me)
-        echo "Public IP: $PUBLIC_IP"
+        uvicorn main:app --port 8000 &
+        sleep 10 # wait for uvicorn to start
 
-    - name: Print local IP
+    - name: Connect to localhost.run
       run: |
-        LOCAL_IP=$(hostname -I | cut -d' ' -f1)
-        echo "Local IP: $LOCAL_IP"
+        ssh -R 80:localhost:8000 ssh.localhost.run &
+        sleep 10 # wait for connection to establish
 
-    - name: Expose to LocalTunnel and Run uvicorn
-      run: |
-        npm install -g localtunnel
-        (lt --port 8000 &) && (uvicorn main:app --host 0.0.0.0 --port 8000 &) && (sleep 3600)
+    - name: Sleep for 1 hour
+      run: sleep 3600
