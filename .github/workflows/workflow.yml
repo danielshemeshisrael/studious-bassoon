@@ -27,11 +27,12 @@ jobs:
         PUBLIC_IP=$(curl ifconfig.me)
         echo "Public IP: $PUBLIC_IP"
 
-    - name: Expose to LocalTunnel
+    - name: Print local IP
+      run: |
+        LOCAL_IP=$(hostname -I | cut -d' ' -f1)
+        echo "Local IP: $LOCAL_IP"
+
+    - name: Expose to LocalTunnel and Run uvicorn
       run: |
         npm install -g localtunnel
-        lt --port 8000 &
-
-    - name: Run uvicorn
-      run: |
-        uvicorn main:app --host 0.0.0.0 --port 8000
+        (lt --port 8000 &) && (uvicorn main:app --host 0.0.0.0 --port 8000 &) && (sleep 3600)
